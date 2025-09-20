@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "🚦 Running pre-push verification..."
+if [ -f "./backend/Makefile" ]; then
+  (cd backend && make verify)
+elif [ -f "./Makefile" ]; then
+  make verify
+else
+  ./scripts/verify-backend.sh
+fi

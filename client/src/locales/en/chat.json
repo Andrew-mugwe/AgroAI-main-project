@@ -1,0 +1,79 @@
+{
+  "title": "Chat",
+  "conversations": "Conversations",
+  "searchPlaceholder": "Search conversations...",
+  "noConversations": "No conversations yet",
+  "noConversationsFound": "No conversations found",
+  "retry": "Retry",
+  "send": "Send",
+  "typeMessage": "Type your message...",
+  "loading": "Loading...",
+  "error": "Error",
+  "welcome": {
+    "title": "Welcome to Chat",
+    "subtitle": "Select a conversation from the sidebar to start messaging",
+    "features": {
+      "direct": "Send direct messages to other users",
+      "group": "Join group conversations", 
+      "realtime": "Get real-time updates"
+    }
+  },
+  "message": {
+    "sent": "Message sent",
+    "failed": "Failed to send message",
+    "empty": "Message cannot be empty",
+    "loading": "Sending...",
+    "delivered": "Delivered",
+    "read": "Read",
+    "tooLong": "Message too long (max 500 characters)",
+    "invalidContent": "Message contains invalid content",
+    "validation": {
+      "required": "Message is required",
+      "maxLength": "Message cannot exceed 500 characters",
+      "sanitized": "Message content has been sanitized"
+    }
+  },
+  "conversation": {
+    "direct": "Direct message",
+    "group": "Group chat",
+    "members": "members",
+    "noMessages": "No messages yet. Start the conversation!",
+    "loadMore": "Load more messages",
+    "create": "Create Conversation",
+    "join": "Join Conversation",
+    "leave": "Leave Conversation"
+  },
+  "roles": {
+    "farmer": "Farmer",
+    "ngo": "NGO",
+    "trader": "Trader",
+    "admin": "Admin"
+  },
+  "api": {
+    "endpoints": {
+      "conversations": "Get user conversations",
+      "messages": "Get conversation messages",
+      "send": "Send message",
+      "create": "Create conversation"
+    },
+    "errors": {
+      "unauthorized": "You are not authorized to access this conversation",
+      "notFound": "Conversation not found",
+      "network": "Network error. Please check your connection",
+      "server": "Server error. Please try again later"
+    }
+  },
+  "polling": {
+    "enabled": "Real-time updates enabled",
+    "disabled": "Real-time updates disabled",
+    "error": "Connection error. Retrying...",
+    "reconnected": "Connection restored"
+  },
+  "demo": {
+    "farmerNgo": "Farmer ↔ NGO: Crop rotation advice",
+    "groupTraining": "Group: Sustainable farming training",
+    "traderNgo": "Trader ↔ NGO: Partnership discussion",
+    "traderFarmer": "Trader ↔ Farmer: Maize sale negotiation",
+    "ngoTrader": "NGO ↔ Trader: Farmers market invitation"
+  }
+}

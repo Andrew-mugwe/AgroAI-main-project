@@ -1,0 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Futura-PT:wght@500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* LV-style font */
+.font-lv {
+  font-family: Futura-PT, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}

@@ -1,0 +1,288 @@
+.marketplace-chat {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f9fafb;
+}
+
+.chat-layout {
+  display: flex;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+.threads-sidebar {
+  width: 400px;
+  min-width: 320px;
+  max-width: 500px;
+  border-right: 1px solid #e5e7eb;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+}
+
+.chat-placeholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f9fafb;
+  padding: 40px;
+}
+
+.placeholder-content {
+  text-align: center;
+  max-width: 500px;
+}
+
+.placeholder-icon {
+  font-size: 64px;
+  margin-bottom: 24px;
+  opacity: 0.6;
+}
+
+.placeholder-content h3 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 12px 0;
+}
+
+.placeholder-content p {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0 0 32px 0;
+  line-height: 1.5;
+}
+
+.placeholder-features {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.feature-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon {
+  font-size: 20px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  border-radius: 50%;
+}
+
+.feature-item span:last-child {
+  font-size: 14px;
+  color: #374151;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .threads-sidebar {
+    width: 350px;
+    min-width: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .chat-layout {
+    flex-direction: column;
+  }
+  
+  .threads-sidebar {
+    width: 100%;
+    max-width: none;
+    height: 40vh;
+    min-height: 200px;
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .chat-main {
+    height: 60vh;
+    min-height: 300px;
+  }
+  
+  .chat-placeholder {
+    padding: 20px;
+  }
+  
+  .placeholder-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+  
+  .placeholder-content h3 {
+    font-size: 20px;
+  }
+  
+  .placeholder-content p {
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+  
+  .placeholder-features {
+    gap: 12px;
+  }
+  
+  .feature-item {
+    padding: 10px 16px;
+  }
+  
+  .feature-icon {
+    font-size: 18px;
+    width: 28px;
+    height: 28px;
+  }
+  
+  .feature-item span:last-child {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .threads-sidebar {
+    height: 35vh;
+    min-height: 180px;
+  }
+  
+  .chat-main {
+    height: 65vh;
+    min-height: 250px;
+  }
+  
+  .chat-placeholder {
+    padding: 16px;
+  }
+  
+  .placeholder-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+  
+  .placeholder-content h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+  
+  .placeholder-content p {
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+  
+  .placeholder-features {
+    gap: 8px;
+  }
+  
+  .feature-item {
+    padding: 8px 12px;
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+  
+  .feature-icon {
+    font-size: 16px;
+    width: 24px;
+    height: 24px;
+  }
+  
+  .feature-item span:last-child {
+    font-size: 12px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .marketplace-chat {
+    background: #1f2937;
+  }
+  
+  .threads-sidebar {
+    background: #1f2937;
+    border-right-color: #374151;
+  }
+  
+  .chat-main {
+    background: #1f2937;
+  }
+  
+  .chat-placeholder {
+    background: #1f2937;
+  }
+  
+  .placeholder-content h3 {
+    color: #f9fafb;
+  }
+  
+  .placeholder-content p {
+    color: #d1d5db;
+  }
+  
+  .feature-item {
+    background: #374151;
+    border-color: #4b5563;
+  }
+  
+  .feature-icon {
+    background: #4b5563;
+  }
+  
+  .feature-item span:last-child {
+    color: #d1d5db;
+  }
+  
+  @media (max-width: 768px) {
+    .threads-sidebar {
+      border-bottom-color: #374151;
+    }
+  }
+}
+
+/* Animation for smooth transitions */
+.chat-layout {
+  transition: all 0.3s ease;
+}
+
+.placeholder-content {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

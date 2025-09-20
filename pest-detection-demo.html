@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroAI Pest Detection - Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dbeafe 50%, #fefce8 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">
+                🐛 AgroAI Pest Detection - Demo
+            </h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                AI-powered pest and disease detection for healthier crops and better yields
+            </p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex justify-center mb-8">
+            <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-2">
+                <div class="flex space-x-2">
+                    <button onclick="showTab('upload')" id="upload-tab" class="flex items-center gap-2 px-6 py-3 rounded-lg font-medium bg-green-600 text-white shadow-lg">
+                        <i data-lucide="upload" class="w-5 h-5"></i>
+                        Upload Image
+                    </button>
+                    <button onclick="showTab('reports')" id="reports-tab" class="flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                        <i data-lucide="camera" class="w-5 h-5"></i>
+                        My Reports
+                    </button>
+                    <button onclick="showTab('analytics')" id="analytics-tab" class="flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                        Analytics
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="upload-content" class="tab-content">
+            <div class="max-w-2xl mx-auto">
+                <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">
+                            Upload Pest Image
+                        </h2>
+                        <p class="text-gray-600">
+                            Upload an image of a pest or disease for AI-powered detection and analysis.
+                        </p>
+                    </div>
+
+                    <!-- File Upload Area -->
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-center">
+                                <i data-lucide="camera" class="w-12 h-12 text-gray-400"></i>
+                            </div>
+                            <div>
+                                <p class="text-lg font-medium text-gray-900 mb-1">
+                                    Drop your image here
+                                </p>
+                                <p class="text-sm text-gray-500 mb-4">
+                                    or click to browse files
+                                </p>
+                                <div class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
+                                    <i data-lucide="upload" class="w-4 h-4"></i>
+                                    Choose File
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-400">
+                                Supports JPG, PNG, GIF up to 10MB
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Notes Input -->
+                    <div class="mt-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Additional Notes (Optional)
+                        </label>
+                        <textarea
+                            placeholder="Describe the location, crop type, or any other relevant information..."
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                            rows="3"
+                        ></textarea>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button class="w-full flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors mt-6">
+                        <i data-lucide="camera" class="w-5 h-5"></i>
+                        Analyze Pest
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="reports-content" class="tab-content hidden">
+            <div>
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">
+                        My Pest Reports (3)
+                    </h2>
+                    <button class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        Refresh
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Sample Pest Report 1 -->
+                    <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden card-hover">
+                        <div class="relative h-48 bg-gradient-to-br from-green-50 to-blue-50">
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="text-center">
+                                    <i data-lucide="bug" class="w-12 h-12 text-gray-400 mx-auto mb-2"></i>
+                                    <p class="text-gray-500 text-sm">Fall Armyworm</p>
+                                </div>
+                            </div>
+                            <div class="absolute top-3 right-3">
+                                <div class="px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 bg-green-100 text-green-600">
+                                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                    87%
+                                </div>
+                            </div>
+                            <div class="absolute bottom-3 left-3">
+                                <div class="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium text-gray-800">
+                                    Fall Armyworm
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <div class="flex items-start justify-between mb-3">
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 text-lg mb-1">
+                                        Fall Armyworm
+                                    </h3>
+                                    <div class="flex items-center text-gray-500 text-sm">
+                                        <i data-lucide="calendar" class="w-4 h-4 mr-1"></i>
+                                        2 days ago
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <p class="text-gray-600 text-sm leading-relaxed">
+                                    Detected on maize leaves in the northern field. Heavy infestation observed.
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2 pt-3 border-t border-gray-100">
+                                <button class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                    View Details
+                                </button>
+                                <button class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors ml-auto">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sample Pest Report 2 -->
+                    <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden card-hover">
+                        <div class="relative h-48 bg-gradient-to-br from-green-50 to-blue-50">
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="text-center">
+                                    <i data-lucide="bug" class="w-12 h-12 text-gray-400 mx-auto mb-2"></i>
+                                    <p class="text-gray-500 text-sm">Leaf Rust</p>
+                                </div>
+                            </div>
+                            <div class="absolute top-3 right-3">
+                                <div class="px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 bg-green-100 text-green-600">
+                                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                    92%
+                                </div>
+                            </div>
+                            <div class="absolute bottom-3 left-3">
+                                <div class="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium text-gray-800">
+                                    Leaf Rust
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <div class="flex items-start justify-between mb-3">
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 text-lg mb-1">
+                                        Leaf Rust
+                                    </h3>
+                                    <div class="flex items-center text-gray-500 text-sm">
+                                        <i data-lucide="calendar" class="w-4 h-4 mr-1"></i>
+                                        1 day ago
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <p class="text-gray-600 text-sm leading-relaxed">
+                                    Found in wheat regions. Early detection allows for timely treatment.
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2 pt-3 border-t border-gray-100">
+                                <button class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                    View Details
+                                </button>
+                                <button class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors ml-auto">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sample Pest Report 3 -->
+                    <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden card-hover">
+                        <div class="relative h-48 bg-gradient-to-br from-green-50 to-blue-50">
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="text-center">
+                                    <i data-lucide="bug" class="w-12 h-12 text-gray-400 mx-auto mb-2"></i>
+                                    <p class="text-gray-500 text-sm">Aphids</p>
+                                </div>
+                            </div>
+                            <div class="absolute top-3 right-3">
+                                <div class="px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 bg-yellow-100 text-yellow-600">
+                                    <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                                    75%
+                                </div>
+                            </div>
+                            <div class="absolute bottom-3 left-3">
+                                <div class="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium text-gray-800">
+                                    Aphids
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <div class="flex items-start justify-between mb-3">
+                                <div>
+                                    <h3 class="font-semibold text-gray-900 text-lg mb-1">
+                                        Aphids
+                                    </h3>
+                                    <div class="flex items-center text-gray-500 text-sm">
+                                        <i data-lucide="calendar" class="w-4 h-4 mr-1"></i>
+                                        3 days ago
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <p class="text-gray-600 text-sm leading-relaxed">
+                                    Common in vegetable gardens. Affecting tomato plants primarily.
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2 pt-3 border-t border-gray-100">
+                                <button class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                    View Details
+                                </button>
+                                <button class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors ml-auto">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="analytics-content" class="tab-content hidden">
+            <div>
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">
+                        Pest Detection Analytics
+                    </h2>
+                    <button class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        Refresh
+                    </button>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Total Detections</p>
+                                <p class="text-2xl font-bold text-gray-900">12</p>
+                            </div>
+                            <div class="p-3 bg-blue-100 rounded-lg">
+                                <i data-lucide="target" class="w-6 h-6 text-blue-600"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Avg Confidence</p>
+                                <p class="text-2xl font-bold text-gray-900">84.7%</p>
+                            </div>
+                            <div class="p-3 bg-green-100 rounded-lg">
+                                <i data-lucide="trending-up" class="w-6 h-6 text-green-600"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Pest Types</p>
+                                <p class="text-2xl font-bold text-gray-900">4</p>
+                            </div>
+                            <div class="p-3 bg-orange-100 rounded-lg">
+                                <i data-lucide="activity" class="w-6 h-6 text-orange-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Analytics -->
+                <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+                    <div class="flex items-center gap-2 mb-6">
+                        <i data-lucide="bar-chart-3" class="w-5 h-5 text-gray-700"></i>
+                        <h3 class="text-lg font-semibold text-gray-900">
+                            Pest Detection Analytics
+                        </h3>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                            <div class="flex items-center gap-4">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="alert-triangle" class="w-6 h-6 text-gray-600"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-900">Fall Armyworm</h4>
+                                    <div class="flex items-center gap-4 text-sm text-gray-500">
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="target" class="w-4 h-4"></i>
+                                            5 detections
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="calendar" class="w-4 h-4"></i>
+                                            Last: 2 days ago
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="text-right">
+                                    <div class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-600">
+                                        <i data-lucide="trending-up" class="w-4 h-4"></i>
+                                        87.2%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                            <div class="flex items-center gap-4">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="alert-triangle" class="w-6 h-6 text-gray-600"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-900">Leaf Rust</h4>
+                                    <div class="flex items-center gap-4 text-sm text-gray-500">
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="target" class="w-4 h-4"></i>
+                                            3 detections
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="calendar" class="w-4 h-4"></i>
+                                            Last: 1 day ago
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="text-right">
+                                    <div class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-600">
+                                        <i data-lucide="trending-up" class="w-4 h-4"></i>
+                                        91.5%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                            <div class="flex items-center gap-4">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="alert-triangle" class="w-6 h-6 text-gray-600"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-900">Aphids</h4>
+                                    <div class="flex items-center gap-4 text-sm text-gray-500">
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="target" class="w-4 h-4"></i>
+                                            3 detections
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="calendar" class="w-4 h-4"></i>
+                                            Last: 3 days ago
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="text-right">
+                                    <div class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-600">
+                                        <i data-lucide="trending-up" class="w-4 h-4"></i>
+                                        78.3%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                            <div class="flex items-center gap-4">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="alert-triangle" class="w-6 h-6 text-gray-600"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-900">Stem Borer</h4>
+                                    <div class="flex items-center gap-4 text-sm text-gray-500">
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="target" class="w-4 h-4"></i>
+                                            1 detection
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <i data-lucide="calendar" class="w-4 h-4"></i>
+                                            Last: 4 days ago
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="text-right">
+                                    <div class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-600">
+                                        <i data-lucide="trending-up" class="w-4 h-4"></i>
+                                        82.1%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Tab switching functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.add('hidden'));
+
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('[id$="-tab"]');
+            tabs.forEach(tab => {
+                tab.className = tab.className.replace('bg-green-600 text-white shadow-lg', 'text-gray-600 hover:text-gray-900 hover:bg-gray-100');
+            });
+
+            // Show selected tab content
+            document.getElementById(tabName + '-content').classList.remove('hidden');
+
+            // Add active class to selected tab
+            const activeTab = document.getElementById(tabName + '-tab');
+            activeTab.className = activeTab.className.replace('text-gray-600 hover:text-gray-900 hover:bg-gray-100', 'bg-green-600 text-white shadow-lg');
+        }
+
+        // Initialize with upload tab
+        showTab('upload');
+    </script>
+</body>
+</html>

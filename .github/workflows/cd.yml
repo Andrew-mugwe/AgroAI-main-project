@@ -1,0 +1,193 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      run_e2e:
+        description: 'Run E2E tests'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: agroai_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:6
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          cd backend && go mod download
+          cd ../client && npm ci
+
+      - name: Run backend tests
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/agroai_test?sslmode=disable
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test_secret
+        run: |
+          cd backend
+          go test -v ./...
+
+      - name: Run frontend tests
+        run: |
+          cd client
+          npm test -- --coverage --watchAll=false
+
+      - name: Run cache benchmark
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/agroai_test?sslmode=disable
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test_secret
+          AUTH_TOKEN: test_token
+        run: |
+          cd backend
+          go run benchmark_cache.go
+
+      - name: Generate cache performance report
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/agroai_test?sslmode=disable
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test_secret
+        run: |
+          cd backend
+          go run scripts/gen_cache_report.go
+
+      - name: Upload cache report
+        uses: actions/upload-artifact@v3
+        with:
+          name: cache-performance-report
+          path: |
+            backend/CACHE_REPORT.md
+            backend/cache_benchmark_results.json
+          retention-days: 30
+
+      - name: Commit cache report
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add backend/CACHE_REPORT.md
+          git diff --staged --quiet || git commit -m "Update cache performance report [skip ci]"
+          git push
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to the Container registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+      - name: Build and push Frontend image
+      uses: docker/build-push-action@v4
+      with:
+          context: ./client
+        push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+      - name: Build and push Backend image
+      uses: docker/build-push-action@v4
+      with:
+          context: ./backend
+        push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+      - name: Run E2E tests
+        if: ${{ github.event.inputs.run_e2e == 'true' }}
+        run: |
+          docker-compose -f docker-compose.test.yml up --exit-code-from e2e
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
+    - name: Deploy to VPS
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        script: |
+            # Export required environment variables
+            export GITHUB_SHA=${{ github.sha }}
+            export GITHUB_REPOSITORY=${{ github.repository }}
+            export DATABASE_URL=${{ secrets.DATABASE_URL }}
+            export JWT_SECRET=${{ secrets.JWT_SECRET }}
+            
+            # Pull latest images and restart services
+          cd /opt/agroai
+            docker-compose -f docker-compose.prod.yml pull
+            docker-compose -f docker-compose.prod.yml up -d
+            
+            # Run migrations
+            docker-compose -f docker-compose.prod.yml exec -T backend ./scripts/run_migrations.sh
+            
+            # Verify deployment
+            curl -f http://localhost/api/health || exit 1
+            
+            # Cleanup old images
+            docker image prune -f
+
+      - name: Upload migration logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: migration-logs
+          path: /var/log/migrations.log
+          retention-days: 7

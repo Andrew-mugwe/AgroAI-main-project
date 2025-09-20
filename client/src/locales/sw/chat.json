@@ -1,0 +1,79 @@
+{
+  "title": "Mazungumzo",
+  "conversations": "Mazungumzo",
+  "searchPlaceholder": "Tafuta mazungumzo...",
+  "noConversations": "Hakuna mazungumzo bado",
+  "noConversationsFound": "Hakuna mazungumzo yamepatikana",
+  "retry": "Jaribu tena",
+  "send": "Tuma",
+  "typeMessage": "Andika ujumbe wako...",
+  "loading": "Inapakia...",
+  "error": "Hitilafu",
+  "welcome": {
+    "title": "Karibu kwenye Mazungumzo",
+    "subtitle": "Chagua mazungumzo kutoka kwenye upande wa kushoto ili uanze kutumia ujumbe",
+    "features": {
+      "direct": "Tuma ujumbe wa moja kwa moja kwa watumiaji wengine",
+      "group": "Jiunge na mazungumzo ya kikundi", 
+      "realtime": "Pata masasisho ya wakati halisi"
+    }
+  },
+  "message": {
+    "sent": "Ujumbe umetumwa",
+    "failed": "Imeshindwa kutuma ujumbe",
+    "empty": "Ujumbe hauwezi kuwa tupu",
+    "loading": "Inatumwa...",
+    "delivered": "Umetumwa",
+    "read": "Umesomwa",
+    "tooLong": "Ujumbe mrefu sana (kiwango cha juu ni herufi 500)",
+    "invalidContent": "Ujumbe una maudhui yasiyofaa",
+    "validation": {
+      "required": "Ujumbe unahitajika",
+      "maxLength": "Ujumbe hauwezi kuzidi herufi 500",
+      "sanitized": "Maudhui ya ujumbe yamefanywa salama"
+    }
+  },
+  "conversation": {
+    "direct": "Ujumbe wa moja kwa moja",
+    "group": "Mazungumzo ya kikundi",
+    "members": "wanachama",
+    "noMessages": "Hakuna ujumbe bado. Anza mazungumzo!",
+    "loadMore": "Pakia ujumbe zaidi",
+    "create": "Unda Mazungumzo",
+    "join": "Jiunge na Mazungumzo",
+    "leave": "Ondoka kwenye Mazungumzo"
+  },
+  "roles": {
+    "farmer": "Mkulima",
+    "ngo": "NGO",
+    "trader": "Mfanyabiashara",
+    "admin": "Msimamizi"
+  },
+  "api": {
+    "endpoints": {
+      "conversations": "Pata mazungumzo ya mtumiaji",
+      "messages": "Pata ujumbe wa mazungumzo",
+      "send": "Tuma ujumbe",
+      "create": "Unda mazungumzo"
+    },
+    "errors": {
+      "unauthorized": "Huna ruhusa ya kufikia mazungumzo haya",
+      "notFound": "Mazungumzo hayajapatikana",
+      "network": "Hitilafu ya mtandao. Tafadhali angalia muunganisho wako",
+      "server": "Hitilafu ya seva. Tafadhali jaribu tena baadaye"
+    }
+  },
+  "polling": {
+    "enabled": "Masasisho ya wakati halisi yamewezeshwa",
+    "disabled": "Masasisho ya wakati halisi yamezimwa",
+    "error": "Hitilafu ya muunganisho. Inajaribu tena...",
+    "reconnected": "Muunganisho umerudishwa"
+  },
+  "demo": {
+    "farmerNgo": "Mkulima ↔ NGO: Ushauri wa mzunguko wa mazao",
+    "groupTraining": "Kikundi: Mafunzo ya kilimo endelevu",
+    "traderNgo": "Mfanyabiashara ↔ NGO: Mazungumzo ya ushirika",
+    "traderFarmer": "Mfanyabiashara ↔ Mkulima: Mazungumzo ya uuzaji wa mahindi",
+    "ngoTrader": "NGO ↔ Mfanyabiashara: Mwaliko wa soko la wakulima"
+  }
+}

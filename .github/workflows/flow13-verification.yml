@@ -1,0 +1,125 @@
+name: Flow 13 - Pest Detection Verification
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  verify-pest-detection:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:13
+        ports: ["5432:5432"]
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: agroai
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.19
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Postgres client
+        run: sudo apt-get install -y postgresql-client
+
+      - name: Install bc (for floating point calculations)
+        run: sudo apt-get install -y bc
+
+      - name: Create .env file
+        run: |
+          echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/agroai" > .env
+          echo "JWT_SECRET=test-secret-key" >> .env
+          echo "MAX_MESSAGE_LENGTH=500" >> .env
+
+      - name: Wait for Postgres
+        run: |
+          until pg_isready -h localhost -p 5432; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+
+      - name: Run pest detection migrations
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/agroai
+        run: |
+          echo "🔄 Running pest detection migrations..."
+          psql $DATABASE_URL -f ./db/migrations/003_create_pest_reports_table.sql
+
+      - name: Run pest detection seeds
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/agroai
+        run: |
+          echo "🌱 Running pest detection seeds..."
+          psql $DATABASE_URL -f ./db/seeds/pest_samples.sql
+
+      - name: Make verification script executable
+        run: chmod +x scripts/verify-pests.sh
+
+      - name: Run pest detection verification
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/agroai
+        run: |
+          echo "🐛 Running Flow 13 pest detection verification..."
+          ./scripts/verify-pests.sh --report
+
+      - name: Run Go tests for pest endpoints
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/agroai
+          JWT_SECRET: test-secret-key
+        run: |
+          echo "🧪 Running Go tests for pest detection..."
+          cd backend
+          go test ./services/pest -v
+          go test ./handlers -run TestPest -v
+          echo "✅ All pest detection tests passed"
+
+      - name: Upload Pest Report
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: pest-detection-report
+          path: |
+            PEST_REPORT.md
+            logs/verify-pests.log
+
+      - name: Upload Sample Images
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: pest-sample-images
+          path: assets/seeds/
+
+      - name: Notify on success
+        if: success()
+        run: |
+          echo "🎉 Flow 13 Pest Detection verification completed successfully!"
+          echo "✅ Database migrations applied"
+          echo "✅ Sample data seeded"
+          echo "✅ API endpoints tested"
+          echo "✅ Frontend components ready"
+          echo "📄 Report generated: PEST_REPORT.md"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Flow 13 Pest Detection verification failed!"
+          echo "Please check the logs for details."

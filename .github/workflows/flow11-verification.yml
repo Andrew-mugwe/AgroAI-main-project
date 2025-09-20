@@ -1,0 +1,68 @@
+name: Flow 11 Notifications Verification
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        ports: ["5432:5432"]
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: agroai
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.19
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Postgres client
+        run: sudo apt-get install -y postgresql-client
+
+      - name: Run Notifications Verification
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/agroai
+        run: |
+          chmod +x scripts/verify-db.sh
+          ./scripts/verify-db.sh
+
+      - name: Generate Notifications Report
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/agroai
+        run: |
+          chmod +x scripts/generate-notifications-report.sh
+          ./scripts/generate-notifications-report.sh
+
+      - name: Upload Notifications Report
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: notifications-report
+          path: NOTIFICATIONS_REPORT.md
+
+      - name: Upload Verification Logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: verification-logs
+          path: logs/verify-db.log

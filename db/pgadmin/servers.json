@@ -1,0 +1,35 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "AgroAI Development",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "agroai_dev",
+      "Username": "agroai_user",
+      "SSLMode": "prefer",
+      "Comment": "AgroAI Development Database",
+      "PassFile": "/tmp/pgpassfile"
+    },
+    "2": {
+      "Name": "AgroAI Test",
+      "Group": "Servers", 
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "agroai_test",
+      "Username": "agroai_user",
+      "SSLMode": "prefer",
+      "Comment": "AgroAI Test Database"
+    },
+    "3": {
+      "Name": "AgroAI Staging",
+      "Group": "Servers",
+      "Host": "postgres", 
+      "Port": 5432,
+      "MaintenanceDB": "agroai_staging",
+      "Username": "agroai_user",
+      "SSLMode": "prefer",
+      "Comment": "AgroAI Staging Database"
+    }
+  }
+}

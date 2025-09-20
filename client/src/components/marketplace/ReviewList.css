@@ -1,0 +1,233 @@
+.review-list {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.review-list.empty {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.review-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.review-list-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.review-count {
+  font-size: 14px;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.reviews-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-item {
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.review-item:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.reviewer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reviewer-name {
+  font-weight: 600;
+  color: #111827;
+  font-size: 14px;
+}
+
+.order-id {
+  font-size: 12px;
+  color: #6b7280;
+  background: #e5e7eb;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.review-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.review-date {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.review-content {
+  margin-top: 8px;
+}
+
+.review-content p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #374151;
+}
+
+.no-reviews {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.no-reviews p {
+  margin: 0;
+}
+
+.show-more {
+  margin-top: 20px;
+  text-align: center;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.show-more-button {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.show-more-button:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.show-more-button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .review-list {
+    padding: 16px;
+  }
+  
+  .review-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  
+  .review-meta {
+    align-self: flex-end;
+  }
+  
+  .review-list-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .review-list {
+    background: #1f2937;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+  
+  .review-list-header {
+    border-bottom-color: #374151;
+  }
+  
+  .review-list-header h3 {
+    color: #f9fafb;
+  }
+  
+  .review-count {
+    color: #d1d5db;
+    background: #374151;
+  }
+  
+  .review-item {
+    background: #111827;
+    border-color: #374151;
+  }
+  
+  .review-item:hover {
+    background: #1f2937;
+    border-color: #4b5563;
+  }
+  
+  .reviewer-name {
+    color: #f9fafb;
+  }
+  
+  .order-id {
+    color: #d1d5db;
+    background: #374151;
+  }
+  
+  .review-date {
+    color: #d1d5db;
+  }
+  
+  .review-content p {
+    color: #d1d5db;
+  }
+  
+  .no-reviews {
+    color: #9ca3af;
+  }
+  
+  .show-more {
+    border-top-color: #374151;
+  }
+  
+  .show-more-button {
+    background: #374151;
+    border-color: #4b5563;
+    color: #d1d5db;
+  }
+  
+  .show-more-button:hover {
+    background: #4b5563;
+    border-color: #6b7280;
+  }
+}

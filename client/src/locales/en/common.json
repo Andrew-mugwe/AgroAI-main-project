@@ -1,0 +1,40 @@
+{
+  "homepage": {
+    "hero": {
+      "title": "Empowering Farmers",
+      "subtitle": "Worldwide",
+      "description": "with AI-driven insights, community support, and smart farming solutions"
+    }
+  },
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "marketplace": "Marketplace",
+    "settings": "Settings"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "forgotPassword": "Forgot Password"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search"
+  },
+  "messages": {
+    "success": "Success",
+    "error": "Error",
+    "loading": "Loading...",
+    "confirmDelete": "Are you sure you want to delete this?"
+  },
+  "languages": {
+    "en": "English",
+    "sw": "Swahili",
+    "fr": "French"
+  }
+}

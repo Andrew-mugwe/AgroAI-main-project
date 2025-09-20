@@ -1,0 +1,160 @@
+name: Analytics CI
+
+on:
+  push:
+    branches: [ main, dev ]
+    paths:
+      - 'backend/services/analytics/**'
+      - 'backend/handlers/analytics/**'
+      - 'client/src/components/analytics/**'
+      - 'client/src/hooks/useAnalytics.ts'
+      - '.github/workflows/ci-analytics.yml'
+  pull_request:
+    branches: [ main, dev ]
+  workflow_dispatch:
+    inputs:
+      run_e2e:
+        description: 'Run E2E tests'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  backend-analytics-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.19'
+        cache: true
+
+    - name: Install dependencies
+      run: cd backend && go mod download
+
+    - name: Run analytics tests
+      run: |
+        cd backend
+        go test ./services/analytics ./handlers/analytics -v -coverprofile=coverage.out
+      env:
+        DATABASE_URL: postgresql://test:test@localhost:5432/test?sslmode=disable
+        JWT_SECRET: test_secret
+
+    - name: Upload coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-analytics-coverage
+        path: backend/coverage.out
+
+  frontend-analytics-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: client/package-lock.json
+
+    - name: Install dependencies
+      run: cd client && npm ci
+
+    - name: Run analytics component tests
+      run: |
+        cd client
+        npm test -- --coverage --testPathPattern="analytics"
+        
+    - name: Upload coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-analytics-coverage
+        path: client/coverage/lcov.info
+
+  migrate-and-seed-staging:
+    needs: [backend-analytics-tests, frontend-analytics-tests]
+    if: github.ref == 'refs/heads/dev' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.19'
+
+    - name: Run analytics migrations
+      run: ./scripts/ci/migrate_analytics.sh
+      env:
+        DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+
+    - name: Seed analytics demo data
+      run: |
+        cd backend
+        go run scripts/ci/seed_analytics_demo.go
+      env:
+        DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+
+    - name: Verify analytics data
+      run: |
+        curl -X GET \
+          -H "Authorization: Bearer ${{ secrets.STAGING_JWT_TOKEN }}" \
+          "${{ secrets.STAGING_API_URL }}/api/analytics/summary" \
+          > analytics_summary.json
+
+    - name: Upload analytics summary
+      uses: actions/upload-artifact@v4
+      with:
+        name: analytics-summary
+        path: analytics_summary.json
+
+  e2e-analytics:
+    needs: migrate-and-seed-staging
+    if: github.event.inputs.run_e2e == 'true'
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: client/package-lock.json
+
+    - name: Install dependencies
+      run: |
+        cd client
+        npm ci
+
+    - name: Run Cypress tests
+      uses: cypress-io/github-action@v6
+      with:
+        working-directory: client
+        config-file: cypress.config.ts
+        spec: "cypress/e2e/analytics/**/*.cy.ts"
+      env:
+        CYPRESS_BASE_URL: ${{ secrets.CYPRESS_BASE_URL }}
+        CYPRESS_JWT_TOKEN: ${{ secrets.STAGING_JWT_TOKEN }}

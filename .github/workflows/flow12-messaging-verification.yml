@@ -1,0 +1,163 @@
+name: Flow 12 - Messaging Verification
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  verify-messaging:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:13
+        ports: ["5432:5432"]
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: agroai
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.19
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Postgres client
+        run: sudo apt-get install -y postgresql-client
+
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+
+      - name: Set up environment variables
+        run: |
+          echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/agroai?sslmode=disable" >> $GITHUB_ENV
+          echo "JWT_SECRET=test_secret_for_flow12" >> $GITHUB_ENV
+
+      - name: Create test database
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE agroai;"
+
+      - name: Create users table (required for foreign keys)
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d agroai -c "
+          CREATE TABLE IF NOT EXISTS users (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            email VARCHAR(255) UNIQUE NOT NULL,
+            password_hash VARCHAR(255) NOT NULL,
+            role VARCHAR(50) NOT NULL DEFAULT 'farmer',
+            created_at TIMESTAMPTZ DEFAULT NOW()
+          );
+          "
+
+      - name: Make verification script executable
+        run: chmod +x scripts/verify-messages.sh
+
+      - name: Run messaging tests
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/agroai
+          MAX_MESSAGE_LENGTH: 500
+        run: |
+          echo "🧪 Running messaging tests..."
+          cd backend
+          go test ./tests -run TestMessageValidation -v
+          go test ./tests -run TestConversationRetrieval -v
+          go test ./tests -run TestThreadFetch -v
+          go test ./tests -run TestSendMessage -v
+          go test ./tests -run TestMessagingSecurity -v
+          echo "✅ All messaging tests passed"
+
+      - name: Run Flow 12 messaging verification
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/agroai
+        run: |
+          echo "🔍 Running Flow 12 messaging verification..."
+          ./scripts/verify-messages.sh --report
+
+      - name: Upload Messaging Report
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: messaging-verification-report
+          path: MESSAGING_REPORT.md
+          retention-days: 30
+
+      - name: Upload Verification Logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: messaging-verification-logs
+          path: logs/
+          retention-days: 7
+
+      - name: Comment PR with verification results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            let report = '## 💬 Flow 12 Messaging Verification\n\n';
+            
+            try {
+              if (fs.existsSync('MESSAGING_REPORT.md')) {
+                const content = fs.readFileSync('MESSAGING_REPORT.md', 'utf8');
+                report += '```markdown\n' + content + '\n```\n\n';
+                report += '✅ **Verification Status**: PASSED\n';
+              } else {
+                report += '❌ **Verification Status**: FAILED - No report generated\n';
+              }
+            } catch (error) {
+              report += '❌ **Verification Status**: FAILED - ' + error.message + '\n';
+            }
+            
+            report += '\n---\n*Automated verification by Flow 12 CI/CD pipeline*';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
+
+      - name: Send Slack alert on failure
+        if: failure() && env.SLACK_WEBHOOK_URL != ''
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"🚨 Flow 12 messaging verification failed in CI pipeline"}' \
+            ${{ env.SLACK_WEBHOOK_URL }}
+
+      - name: Send Email alert on failure
+        if: failure() && env.SENDGRID_API_KEY != ''
+        run: |
+          echo "Email alert would be sent via SendGrid API"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Flow 12 messaging verification failed!"
+          echo "Check the logs above for details."
+          echo "Common issues:"
+          echo "- Database connection problems"
+          echo "- Migration script errors"
+          echo "- Missing dependencies"
+          echo "- Permission issues"
+          echo "- Seeded data mismatch"

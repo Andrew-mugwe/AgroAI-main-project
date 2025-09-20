@@ -1,0 +1,51 @@
+name: Backend Verification (with Postgres)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: agroai
+          POSTGRES_PASSWORD: agroai
+          POSTGRES_DB: agroai_test
+        ports: [ "5432:5432" ]
+        options: >-
+          --health-cmd "pg_isready -U agroai -d agroai_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgres://agroai:agroai@localhost:5432/agroai_test?sslmode=disable
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: '1.23' }
+
+      - name: Wait for Postgres
+        run: |
+          for i in {1..30}; do
+            if pg_isready -h localhost -p 5432 -U agroai -d agroai_test; then
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Install golangci-lint
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+          | sh -s -- -b $(go env GOPATH)/bin v1.60.0
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: Run verification
+        working-directory: backend
+        run: make verify

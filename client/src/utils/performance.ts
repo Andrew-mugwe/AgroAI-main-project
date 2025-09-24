@@ -4,7 +4,7 @@ import { useEffect, useCallback, useRef } from 'react'
 const PERFORMANCE_CONFIG = {
   slowThreshold: 200, // ms
   verySlowThreshold: 1000, // ms
-  logLevel: import.meta.env.DEV ? 'warn' : 'error',
+  logLevel: (import.meta as any).env?.DEV ? 'warn' : 'error',
 }
 
 // Custom hook for monitoring component render time

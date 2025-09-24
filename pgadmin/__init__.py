@@ -1,0 +1,1 @@
+# pgadmin module initialization

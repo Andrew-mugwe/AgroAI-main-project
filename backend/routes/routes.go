@@ -250,7 +250,9 @@ func InitRoutes(router *mux.Router, db *sql.DB) {
 	router.HandleFunc("/api/admin/monitoring/overview", middleware.AuthMiddleware(middleware.RequireRole(models.RoleAdmin)(adminMonitoringHandler.GetMonitoringOverview))).Methods("GET")
 	router.HandleFunc("/api/admin/monitoring/reputation-distribution", middleware.AuthMiddleware(middleware.RequireRole(models.RoleAdmin)(adminMonitoringHandler.GetReputationDistribution))).Methods("GET")
 	router.HandleFunc("/api/admin/monitoring/disputes-over-time", middleware.AuthMiddleware(middleware.RequireRole(models.RoleAdmin)(adminMonitoringHandler.GetDisputesOverTime))).Methods("GET")
+	router.HandleFunc("/api/admin/alerts", middleware.AuthMiddleware(middleware.RequireRole(models.RoleAdmin)(adminMonitoringHandler.GetAlerts))).Methods("GET")
 	router.HandleFunc("/api/admin/alerts", middleware.AuthMiddleware(middleware.RequireRole(models.RoleAdmin)(adminMonitoringHandler.CreateAlert))).Methods("POST")
+	router.HandleFunc("/api/admin/alerts/{id}/resolve", middleware.AuthMiddleware(middleware.RequireRole(models.RoleAdmin)(adminMonitoringHandler.ResolveAlert))).Methods("PATCH")
 
 	// Order routes
 	router.HandleFunc("/api/orders", middleware.AuthMiddleware(orderHandler.CreateOrder)).Methods("POST")
@@ -260,6 +262,15 @@ func InitRoutes(router *mux.Router, db *sql.DB) {
 	router.HandleFunc("/api/orders/{id}/status", middleware.AuthMiddleware(orderHandler.UpdateOrderStatus)).Methods("PUT")
 	router.HandleFunc("/api/orders/{id}/payment", middleware.AuthMiddleware(orderHandler.ProcessPayment)).Methods("POST")
 	router.HandleFunc("/api/orders/{id}/status", orderHandler.GetOrderStatus).Methods("GET")
+
+	// Flow14.1.1: Marketplace public routes and order aliases
+	RegisterMarketplaceRoutes(router, db)
+	// Order aliases under marketplace namespace (reuse same handlers)
+	router.HandleFunc("/api/marketplace/orders", middleware.AuthMiddleware(orderHandler.CreateOrder)).Methods("POST")
+	router.HandleFunc("/api/marketplace/orders/{id}", middleware.AuthMiddleware(orderHandler.GetOrder)).Methods("GET")
+	router.HandleFunc("/api/marketplace/orders", middleware.AuthMiddleware(orderHandler.GetUserOrders)).Methods("GET")
+	router.HandleFunc("/api/marketplace/orders/{id}/payment", middleware.AuthMiddleware(orderHandler.ProcessPayment)).Methods("POST")
+	router.HandleFunc("/api/marketplace/orders/{id}/status", orderHandler.GetOrderStatus).Methods("GET")
 
 	// Health check route
 	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {

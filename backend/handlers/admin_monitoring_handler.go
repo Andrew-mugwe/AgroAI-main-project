@@ -7,21 +7,25 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Andrew-mugwe/agroai/services/alerts"
 	"github.com/Andrew-mugwe/agroai/services/analytics"
 	"github.com/Andrew-mugwe/agroai/utils"
+	"github.com/google/uuid"
 )
 
 // AdminMonitoringHandler handles admin monitoring and analytics
 type AdminMonitoringHandler struct {
-	db        *sql.DB
-	analytics *analytics.MarketplaceAnalytics
+	db           *sql.DB
+	analytics    *analytics.MarketplaceAnalytics
+	alertService *alerts.AlertService
 }
 
 // NewAdminMonitoringHandler creates a new admin monitoring handler
 func NewAdminMonitoringHandler(db *sql.DB) *AdminMonitoringHandler {
 	return &AdminMonitoringHandler{
-		db:        db,
-		analytics: analytics.NewMarketplaceAnalytics(),
+		db:           db,
+		analytics:    analytics.NewMarketplaceAnalytics(),
+		alertService: alerts.NewAlertService(db),
 	}
 }
 
@@ -412,6 +416,83 @@ func (h *AdminMonitoringHandler) GetDisputesOverTime(w http.ResponseWriter, r *h
 	response := map[string]interface{}{
 		"success": true,
 		"data":    disputesOverTime,
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, response)
+}
+
+// GetAlerts handles GET /api/admin/alerts
+func (h *AdminMonitoringHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// Parse query parameters
+	limit := 20
+	offset := 0
+
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 && l <= 100 {
+			limit = l
+		}
+	}
+	if pageStr := r.URL.Query().Get("page"); pageStr != "" {
+		if page, err := strconv.Atoi(pageStr); err == nil && page > 0 {
+			offset = (page - 1) * limit
+		}
+	}
+
+	// Get recent alerts
+	alerts, err := h.alertService.GetRecentAlerts(ctx, limit, offset)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to get alerts")
+		return
+	}
+
+	response := map[string]interface{}{
+		"success": true,
+		"data":    alerts,
+		"pagination": map[string]interface{}{
+			"limit":  limit,
+			"offset": offset,
+			"page":   (offset / limit) + 1,
+		},
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, response)
+}
+
+// ResolveAlert handles PATCH /api/admin/alerts/:id/resolve
+func (h *AdminMonitoringHandler) ResolveAlert(w http.ResponseWriter, r *http.Request) {
+	// Get user ID from context (admin user)
+	userID, err := utils.GetUserIDFromContext(r)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	// Get alert ID from URL
+	alertIDStr := r.URL.Path[len("/api/admin/alerts/"):]
+	if alertIDStr == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Alert ID is required")
+		return
+	}
+
+	// Parse alert ID
+	alertID, err := uuid.Parse(alertIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid alert ID")
+		return
+	}
+
+	// Resolve alert
+	err = h.alertService.ResolveAlert(r.Context(), alertID, userID)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to resolve alert")
+		return
+	}
+
+	response := map[string]interface{}{
+		"success": true,
+		"message": "Alert resolved successfully",
 	}
 
 	utils.RespondWithJSON(w, http.StatusOK, response)

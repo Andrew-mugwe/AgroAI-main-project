@@ -137,19 +137,20 @@ export interface ProcessPaymentResponse {
 class OrderApi {
   // Create a new order
   async createOrder(orderData: CreateOrderRequest): Promise<OrderResponse> {
-    const response = await apiClient.post('/api/orders', orderData)
+    // Flow14.1.1: prefer marketplace alias
+    const response = await apiClient.post('/api/marketplace/orders', orderData)
     return response.data
   }
 
   // Get order by ID
   async getOrder(orderId: string): Promise<OrderResponse> {
-    const response = await apiClient.get(`/api/orders/${orderId}`)
+    const response = await apiClient.get(`/api/marketplace/orders/${orderId}`)
     return response.data
   }
 
   // Get user's orders
   async getUserOrders(page: number = 1, limit: number = 20): Promise<OrdersListResponse> {
-    const response = await apiClient.get('/api/orders', {
+    const response = await apiClient.get('/api/marketplace/orders', {
       params: { page, limit }
     })
     return response.data
@@ -174,7 +175,7 @@ class OrderApi {
 
   // Process payment for an order
   async processPayment(orderId: string, paymentData: ProcessPaymentRequest): Promise<ProcessPaymentResponse> {
-    const response = await apiClient.post(`/api/orders/${orderId}/payment`, paymentData)
+    const response = await apiClient.post(`/api/marketplace/orders/${orderId}/payment`, paymentData)
     return response.data
   }
 
@@ -189,7 +190,7 @@ class OrderApi {
     created_at: string
     updated_at: string
   }> {
-    const response = await apiClient.get(`/api/orders/${orderId}/status`)
+    const response = await apiClient.get(`/api/marketplace/orders/${orderId}/status`)
     return response.data
   }
 }

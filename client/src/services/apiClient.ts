@@ -3,7 +3,7 @@ import toast from 'react-hot-toast'
 
 // Production-ready API Configuration
 const API_CONFIG = {
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
+  baseURL: (import.meta as any).env?.VITE_API_URL || 'http://localhost:8080/api',
   timeout: 15000, // 15 seconds
   retryAttempts: 3,
   retryDelay: 1000,
@@ -57,7 +57,7 @@ class ApiClient {
         config.headers['X-Request-ID'] = this.generateRequestId()
         
         // Log request in development
-        if (import.meta.env.DEV) {
+        if ((import.meta as any).env?.DEV) {
           console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`)
         }
 
@@ -73,7 +73,7 @@ class ApiClient {
     this.instance.interceptors.response.use(
       (response: AxiosResponse) => {
         // Log successful responses in development
-        if (import.meta.env.DEV) {
+        if ((import.meta as any).env?.DEV) {
           console.log(`✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url} (${response.status})`)
         }
 

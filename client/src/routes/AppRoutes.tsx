@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { Login } from '../pages/Auth/Login'
-import { Register } from '../pages/Auth/Register'
-import { RoleSelection } from '../pages/Auth/RoleSelection'
+import Login from '../pages/Auth/login'
+import Register from '../pages/Auth/register'
+import RoleSelection from '../pages/Auth/RoleSelection'
 import { FarmerDashboard } from '../pages/user/FarmerDashboard'
 import { NGODashboard } from '../pages/user/NGODashboard'
 import { TraderDashboard } from '../pages/user/TraderDashboard'
@@ -11,6 +11,9 @@ import PestDetectionPage from '../pages/pest/PestDetectionPage'
 import FeaturesPage from '../pages/FeaturesPage'
 import { ProtectedRoute } from '../components/routing/ProtectedRoute'
 import { useAuth } from '../context/AuthContext'
+// Flow14.1.1
+import Marketplace from '../pages/Marketplace'
+import Checkout from '../pages/Checkout'
 
 export function AppRoutes() {
   const { user } = useAuth()
@@ -102,6 +105,17 @@ export function AppRoutes() {
       <Route
         path="/features"
         element={<FeaturesPage />}
+      />
+
+      {/* Flow14.1.1: Marketplace routes */}
+      <Route path="/marketplace" element={<Marketplace />} />
+      <Route
+        path="/checkout"
+        element={
+          <ProtectedRoute>
+            <Checkout />
+          </ProtectedRoute>
+        }
       />
 
       {/* Pest Detection Routes */}

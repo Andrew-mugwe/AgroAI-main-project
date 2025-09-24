@@ -84,7 +84,7 @@ class ApiService {
     }
 
     // Don't show toast for network errors in development
-    if (import.meta.env.DEV && error.code === 'NETWORK_ERROR') {
+    if ((import.meta as any).env?.DEV && error.code === 'NETWORK_ERROR') {
       console.warn('Network error in development:', error)
       return
     }

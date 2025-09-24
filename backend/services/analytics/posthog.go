@@ -132,9 +132,13 @@ func (p *PostHogClient) sendBatch(ctx context.Context, events []PostHogEvent) er
 
 // Marketplace Events
 const (
+	// User events
+	EventUserSignedUp = "user_signed_up"
+	EventUserLoggedIn = "user_logged_in"
+
 	// Product events
 	EventProductViewed          = "product_viewed"
-	EventProductAddedToCart     = "product_added_to_cart"
+	EventProductAddedToCart     = "add_to_cart"
 	EventProductRemovedFromCart = "product_removed_from_cart"
 
 	// Seller events
@@ -152,17 +156,20 @@ const (
 	EventOrderCancelled = "order_cancelled"
 
 	// Payment events
-	EventPaymentInitiated = "payment_initiated"
-	EventPaymentSucceeded = "payment_succeeded"
-	EventPaymentFailed    = "payment_failed"
+	EventCheckoutInitiated = "checkout_initiated"
+	EventPaymentInitiated  = "payment_initiated"
+	EventPaymentSucceeded  = "payment_succeeded"
+	EventPaymentFailed     = "payment_failed"
 
 	// Messaging events
 	EventMessageStarted = "message_started"
 	EventMessageSent    = "message_sent"
 
 	// Notification events
-	EventNotificationSent = "notification_sent"
-	EventNotificationRead = "notification_read"
+	EventNotificationSent    = "notification_sent"
+	EventNotificationOpened  = "notification_opened"
+	EventNotificationClicked = "notification_clicked"
+	EventNotificationRead    = "notification_read"
 
 	// Admin events
 	EventAdminAction = "admin_action"
@@ -286,4 +293,71 @@ func (m *MarketplaceAnalytics) TrackSystemAlert(ctx context.Context, alertType, 
 	}
 
 	return m.posthog.TrackEvent(ctx, "system", EventSystemAlert, properties)
+}
+
+// TrackUserSignedUp tracks when a user signs up
+func (m *MarketplaceAnalytics) TrackUserSignedUp(ctx context.Context, userID, country string, role string) error {
+	return m.posthog.TrackEvent(ctx, userID, EventUserSignedUp, map[string]interface{}{
+		"country":   country,
+		"user_role": role,
+	})
+}
+
+// TrackUserLoggedIn tracks when a user logs in
+func (m *MarketplaceAnalytics) TrackUserLoggedIn(ctx context.Context, userID, country string, role string) error {
+	return m.posthog.TrackEvent(ctx, userID, EventUserLoggedIn, map[string]interface{}{
+		"country":   country,
+		"user_role": role,
+	})
+}
+
+// TrackAddToCart tracks when a product is added to cart
+func (m *MarketplaceAnalytics) TrackAddToCart(ctx context.Context, userID, productID, sellerID string, country string) error {
+	return m.posthog.TrackEvent(ctx, userID, EventProductAddedToCart, map[string]interface{}{
+		"product_id": productID,
+		"seller_id":  sellerID,
+		"country":    country,
+		"user_role":  "buyer",
+	})
+}
+
+// TrackCheckoutInitiated tracks when checkout is initiated
+func (m *MarketplaceAnalytics) TrackCheckoutInitiated(ctx context.Context, userID string, amount float64, currency, country string) error {
+	return m.posthog.TrackEvent(ctx, userID, EventCheckoutInitiated, map[string]interface{}{
+		"amount":    amount,
+		"currency":  currency,
+		"country":   country,
+		"user_role": "buyer",
+	})
+}
+
+// TrackPaymentFailed tracks when a payment fails
+func (m *MarketplaceAnalytics) TrackPaymentFailed(ctx context.Context, userID, orderID, transactionID, paymentMethod string, amount float64, currency, errorReason string) error {
+	return m.posthog.TrackEvent(ctx, userID, EventPaymentFailed, map[string]interface{}{
+		"order_id":       orderID,
+		"transaction_id": transactionID,
+		"payment_method": paymentMethod,
+		"amount":         amount,
+		"currency":       currency,
+		"error_reason":   errorReason,
+	})
+}
+
+// TrackNotificationOpened tracks when a notification is opened
+func (m *MarketplaceAnalytics) TrackNotificationOpened(ctx context.Context, userID, notificationType, notificationID string, country string) error {
+	return m.posthog.TrackEvent(ctx, userID, EventNotificationOpened, map[string]interface{}{
+		"notification_type": notificationType,
+		"notification_id":   notificationID,
+		"country":           country,
+	})
+}
+
+// TrackNotificationClicked tracks when a notification is clicked
+func (m *MarketplaceAnalytics) TrackNotificationClicked(ctx context.Context, userID, notificationType, notificationID, linkURL string, country string) error {
+	return m.posthog.TrackEvent(ctx, userID, EventNotificationClicked, map[string]interface{}{
+		"notification_type": notificationType,
+		"notification_id":   notificationID,
+		"link_url":          linkURL,
+		"country":           country,
+	})
 }

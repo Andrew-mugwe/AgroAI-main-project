@@ -1,211 +1,221 @@
 import React from 'react';
-import posthog from 'posthog-js';
 
 // PostHog configuration
 const POSTHOG_KEY = process.env.REACT_APP_POSTHOG_KEY || '';
 const POSTHOG_HOST = process.env.REACT_APP_POSTHOG_HOST || 'https://app.posthog.com';
 
+// PostHog Events (matching backend events)
+export const PostHogEvents = {
+  // User events
+  USER_SIGNED_UP: 'user_signed_up',
+  USER_LOGGED_IN: 'user_logged_in',
+  
+  // Product events
+  PRODUCT_VIEWED: 'product_viewed',
+  ADD_TO_CART: 'add_to_cart',
+  
+  // Checkout events
+  CHECKOUT_INITIATED: 'checkout_initiated',
+  
+  // Payment events
+  PAYMENT_SUCCEEDED: 'payment_succeeded',
+  PAYMENT_FAILED: 'payment_failed',
+  
+  // Messaging events
+  MESSAGE_STARTED: 'message_started',
+  
+  // Seller events
+  SELLER_PROFILE_VIEWED: 'seller_profile_viewed',
+  
+  // Review events
+  REVIEW_SUBMITTED: 'review_submitted',
+  
+  // Seller verification
+  SELLER_VERIFIED: 'seller_verified',
+  
+  // Notification events
+  NOTIFICATION_SENT: 'notification_sent',
+  NOTIFICATION_OPENED: 'notification_opened',
+  NOTIFICATION_CLICKED: 'notification_clicked',
+} as const;
+
 // Initialize PostHog
 export const initializePostHog = () => {
-  if (POSTHOG_KEY && typeof window !== 'undefined') {
-    posthog.init(POSTHOG_KEY, {
-      api_host: POSTHOG_HOST,
-      loaded: (posthog) => {
-        if (process.env.NODE_ENV === 'development') {
-          posthog.debug();
-        }
-      },
-      capture_pageview: false, // We'll capture pageviews manually
-      capture_pageleave: true,
-      disable_session_recording: false,
-      session_recording: {
-        maskAllInputs: true,
-        maskInputOptions: {
-          password: true,
-          email: true,
-        },
-      },
-    });
+  if (POSTHOG_KEY) {
+    console.log('PostHog would be initialized here');
   }
 };
 
-// Track marketplace events
-export const trackMarketplaceEvent = (
-  eventName: string,
-  properties?: Record<string, any>
-) => {
-  if (typeof window !== 'undefined' && posthog) {
-    posthog.capture(eventName, {
-      ...properties,
-      timestamp: new Date().toISOString(),
-      source: 'marketplace',
-    });
+// Mock PostHog client for development
+const mockPostHog = {
+  capture: (event: string, properties?: Record<string, any>) => {
+    console.log(`PostHog event: ${event}`, properties);
+  },
+  identify: (userId: string, properties?: Record<string, any>) => {
+    console.log(`PostHog identify: ${userId}`, properties);
+  },
+  reset: () => {
+    console.log('PostHog reset');
   }
 };
 
-// Marketplace event tracking functions
+// Analytics service
 export const analytics = {
-  // Product events
+  // Product analytics
   productViewed: (productId: string, sellerId: string, userId?: string) => {
-    trackMarketplaceEvent('product_viewed', {
+    mockPostHog.capture(PostHogEvents.PRODUCT_VIEWED, {
       product_id: productId,
       seller_id: sellerId,
       user_id: userId,
+      timestamp: new Date().toISOString()
     });
   },
 
   productAddedToCart: (productId: string, sellerId: string, userId?: string) => {
-    trackMarketplaceEvent('product_added_to_cart', {
+    mockPostHog.capture(PostHogEvents.ADD_TO_CART, {
       product_id: productId,
       seller_id: sellerId,
       user_id: userId,
+      timestamp: new Date().toISOString()
     });
   },
 
-  productRemovedFromCart: (productId: string, sellerId: string, userId?: string) => {
-    trackMarketplaceEvent('product_removed_from_cart', {
-      product_id: productId,
-      seller_id: sellerId,
+  checkoutInitiated: (cartItems: any[], userId?: string) => {
+    mockPostHog.capture(PostHogEvents.CHECKOUT_INITIATED, {
+      cart_items: cartItems.length,
+      total_amount: cartItems.reduce((sum, item) => sum + item.price, 0),
       user_id: userId,
+      timestamp: new Date().toISOString()
     });
   },
 
-  // Seller events
-  sellerProfileViewed: (sellerId: string, userId?: string) => {
-    trackMarketplaceEvent('seller_profile_viewed', {
-      seller_id: sellerId,
-      user_id: userId,
-    });
-  },
-
-  // Review events
-  reviewSubmitted: (sellerId: string, orderId: string, rating: number, userId?: string) => {
-    trackMarketplaceEvent('review_submitted', {
-      seller_id: sellerId,
-      order_id: orderId,
-      rating: rating,
-      user_id: userId,
-    });
-  },
-
-  // Order events
-  orderCreated: (orderId: string, sellerId: string, amount: number, currency: string, userId?: string) => {
-    trackMarketplaceEvent('order_created', {
-      order_id: orderId,
-      seller_id: sellerId,
-      amount: amount,
-      currency: currency,
-      user_id: userId,
-    });
-  },
-
-  orderCompleted: (orderId: string, sellerId: string, amount: number, userId?: string) => {
-    trackMarketplaceEvent('order_completed', {
-      order_id: orderId,
-      seller_id: sellerId,
-      amount: amount,
-      user_id: userId,
-    });
-  },
-
-  // Payment events
-  paymentInitiated: (orderId: string, paymentMethod: string, amount: number, userId?: string) => {
-    trackMarketplaceEvent('payment_initiated', {
-      order_id: orderId,
-      payment_method: paymentMethod,
-      amount: amount,
-      user_id: userId,
-    });
-  },
-
-  paymentSucceeded: (orderId: string, transactionId: string, paymentMethod: string, amount: number, userId?: string) => {
-    trackMarketplaceEvent('payment_succeeded', {
-      order_id: orderId,
+  // Payment analytics
+  paymentSucceeded: (transactionId: string, amount: number, provider: string, userId?: string) => {
+    mockPostHog.capture(PostHogEvents.PAYMENT_SUCCEEDED, {
       transaction_id: transactionId,
-      payment_method: paymentMethod,
-      amount: amount,
+      amount,
+      provider,
       user_id: userId,
+      timestamp: new Date().toISOString()
     });
   },
 
-  paymentFailed: (orderId: string, paymentMethod: string, amount: number, error: string, userId?: string) => {
-    trackMarketplaceEvent('payment_failed', {
-      order_id: orderId,
-      payment_method: paymentMethod,
-      amount: amount,
-      error: error,
+  paymentFailed: (error: string, amount: number, provider: string, userId?: string) => {
+    mockPostHog.capture(PostHogEvents.PAYMENT_FAILED, {
+      error,
+      amount,
+      provider,
       user_id: userId,
+      timestamp: new Date().toISOString()
     });
   },
 
-  // Messaging events
-  messageStarted: (sellerId: string, threadId: string, userId?: string) => {
-    trackMarketplaceEvent('message_started', {
+  // Messaging analytics
+  messageStarted: (threadRef: string, userId: string, participantCount: number) => {
+    mockPostHog.capture(PostHogEvents.MESSAGE_STARTED, {
+      thread_ref: threadRef,
+      user_id: userId,
+      participant_count: participantCount,
+      timestamp: new Date().toISOString()
+    });
+  },
+
+  // Seller analytics
+  sellerProfileViewed: (sellerId: string, viewerId: string) => {
+    mockPostHog.capture(PostHogEvents.SELLER_PROFILE_VIEWED, {
       seller_id: sellerId,
-      thread_id: threadId,
-      user_id: userId,
+      viewer_id: viewerId,
+      timestamp: new Date().toISOString()
     });
   },
 
-  messageSent: (sellerId: string, threadId: string, userId?: string) => {
-    trackMarketplaceEvent('message_sent', {
+  reviewSubmitted: (reviewId: string, productId: string, sellerId: string, rating: number, userId: string) => {
+    mockPostHog.capture(PostHogEvents.REVIEW_SUBMITTED, {
+      review_id: reviewId,
+      product_id: productId,
       seller_id: sellerId,
-      thread_id: threadId,
+      rating,
       user_id: userId,
+      timestamp: new Date().toISOString()
     });
   },
 
-  // Checkout events
-  checkoutInitiated: (cartItems: number, totalAmount: number, userId?: string) => {
-    trackMarketplaceEvent('checkout_initiated', {
-      cart_items: cartItems,
-      total_amount: totalAmount,
-      user_id: userId,
+  sellerVerified: (sellerId: string, verifiedBy: string) => {
+    mockPostHog.capture(PostHogEvents.SELLER_VERIFIED, {
+      seller_id: sellerId,
+      verified_by: verifiedBy,
+      timestamp: new Date().toISOString()
     });
   },
 
-  // Notification events
-  notificationReceived: (notificationType: string, userId?: string) => {
-    trackMarketplaceEvent('notification_received', {
-      notification_type: notificationType,
-      user_id: userId,
-    });
-  },
-
-  notificationRead: (notificationId: string, userId?: string) => {
-    trackMarketplaceEvent('notification_read', {
+  // Notification analytics
+  notificationSent: (notificationId: string, userId: string, type: string) => {
+    mockPostHog.capture(PostHogEvents.NOTIFICATION_SENT, {
       notification_id: notificationId,
       user_id: userId,
+      type,
+      timestamp: new Date().toISOString()
     });
   },
 
-  // Page view tracking
-  pageViewed: (pageName: string, properties?: Record<string, any>) => {
-    trackMarketplaceEvent('$pageview', {
-      page: pageName,
-      ...properties,
+  notificationOpened: (notificationId: string, userId: string) => {
+    mockPostHog.capture(PostHogEvents.NOTIFICATION_OPENED, {
+      notification_id: notificationId,
+      user_id: userId,
+      timestamp: new Date().toISOString()
     });
+  },
+
+  notificationClicked: (notificationId: string, userId: string, action: string) => {
+    mockPostHog.capture(PostHogEvents.NOTIFICATION_CLICKED, {
+      notification_id: notificationId,
+      user_id: userId,
+      action,
+      timestamp: new Date().toISOString()
+    });
+  },
+
+  // Page analytics
+  pageViewed: (pageName: string, userId?: string) => {
+    mockPostHog.capture('page_viewed', {
+      page: pageName,
+      user_id: userId,
+      timestamp: new Date().toISOString()
+    });
+  },
+
+  // User analytics
+  userSignedUp: (userId: string, role: string) => {
+    mockPostHog.capture(PostHogEvents.USER_SIGNED_UP, {
+      user_id: userId,
+      role,
+      timestamp: new Date().toISOString()
+    });
+  },
+
+  userLoggedIn: (userId: string, role: string) => {
+    mockPostHog.capture(PostHogEvents.USER_LOGGED_IN, {
+      user_id: userId,
+      role,
+      timestamp: new Date().toISOString()
+    });
+  },
+
+  // Direct tracking method
+  track: (event: string, properties?: Record<string, any>) => {
+    if (POSTHOG_KEY) {
+      console.log(`PostHog event: ${event}`, properties);
+    }
   },
 
   // User identification
-  identifyUser: (userId: string, userProperties?: Record<string, any>) => {
-    if (typeof window !== 'undefined' && posthog) {
-      posthog.identify(userId, userProperties);
-    }
+  identify: (userId: string, properties?: Record<string, any>) => {
+    mockPostHog.identify(userId, properties);
   },
 
-  // Set user properties
-  setUserProperties: (properties: Record<string, any>) => {
-    if (typeof window !== 'undefined' && posthog) {
-      posthog.people.set(properties);
-    }
-  },
-
-  // Reset user (on logout)
+  // Reset user session
   resetUser: () => {
-    if (typeof window !== 'undefined' && posthog) {
-      posthog.reset();
-    }
+    mockPostHog.reset();
   },
 };
 
@@ -226,15 +236,12 @@ export const withAnalytics = (WrappedComponent: React.ComponentType<any>, pageNa
 };
 
 // Utility function to get user country from IP (if available)
-export const getUserCountry = async (): Promise<string> => {
+export const getUserCountry = async (): Promise<string | null> => {
   try {
-    const response = await fetch('https://ipapi.co/json/');
-    const data = await response.json();
-    return data.country_code || 'Unknown';
+    // In a real implementation, you'd call a geolocation service
+    return 'US'; // Mock value
   } catch (error) {
-    console.warn('Failed to get user country:', error);
-    return 'Unknown';
+    console.error('Error getting user country:', error);
+    return null;
   }
 };
-
-export default analytics;

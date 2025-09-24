@@ -51,14 +51,28 @@ interface DisputesOverTime {
   count: number;
 }
 
+interface Alert {
+  id: string;
+  rule_name: string;
+  severity: string;
+  triggered_at: string;
+  payload: any;
+  delivered: boolean;
+  delivered_channels: string[];
+  resolved_at?: string;
+  resolved_by?: string;
+  created_at: string;
+}
+
 export function AdminMonitoring() {
   const [overview, setOverview] = useState<MonitoringOverview | null>(null);
   const [sellers, setSellers] = useState<SellerListItem[]>([]);
   const [reputationDistribution, setReputationDistribution] = useState<ReputationDistribution[]>([]);
   const [disputesOverTime, setDisputesOverTime] = useState<DisputesOverTime[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'sellers' | 'analytics'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'sellers' | 'analytics' | 'alerts'>('overview');
   const [sellerFilter, setSellerFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -68,6 +82,7 @@ export function AdminMonitoring() {
     loadSellers();
     loadReputationDistribution();
     loadDisputesOverTime();
+    loadAlerts();
   }, []);
 
   useEffect(() => {
@@ -129,6 +144,17 @@ export function AdminMonitoring() {
     }
   };
 
+  const loadAlerts = async () => {
+    try {
+      const response = await apiClient.get('/admin/alerts');
+      if (response.data.success) {
+        setAlerts(response.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to load alerts:', err);
+    }
+  };
+
   const handleVerifySeller = async (sellerId: string, verified: boolean) => {
     try {
       await apiClient.patch(`/admin/sellers/${sellerId}/verify`, { verified });
@@ -145,6 +171,15 @@ export function AdminMonitoring() {
       loadSellers();
     } catch (err) {
       console.error('Failed to recalculate reputation:', err);
+    }
+  };
+
+  const handleResolveAlert = async (alertId: string) => {
+    try {
+      await apiClient.patch(`/admin/alerts/${alertId}/resolve`);
+      loadAlerts();
+    } catch (err) {
+      console.error('Failed to resolve alert:', err);
     }
   };
 
@@ -268,6 +303,7 @@ export function AdminMonitoring() {
               {[
                 { id: 'overview', label: 'Overview', icon: BarChart3 },
                 { id: 'sellers', label: 'Sellers', icon: Users },
+                { id: 'alerts', label: 'Alerts', icon: AlertTriangle },
                 { id: 'analytics', label: 'Analytics', icon: TrendingUp }
               ].map((tab) => (
                 <button
@@ -446,6 +482,113 @@ export function AdminMonitoring() {
                     >
                       Next
                     </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'alerts' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-900">System Alerts</h3>
+                  <button
+                    onClick={loadAlerts}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Refresh
+                  </button>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Alert
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Severity
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Triggered
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {alerts.map((alert) => (
+                        <tr key={alert.id}>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">{alert.rule_name}</div>
+                              <div className="text-sm text-gray-500">
+                                {alert.payload?.description || 'System alert'}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              alert.severity === 'critical'
+                                ? 'bg-red-100 text-red-800'
+                                : alert.severity === 'high'
+                                ? 'bg-orange-100 text-orange-800'
+                                : alert.severity === 'medium'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {alert.severity.toUpperCase()}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {new Date(alert.triggered_at).toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex flex-col gap-1">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                alert.delivered
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}>
+                                {alert.delivered ? 'Delivered' : 'Pending'}
+                              </span>
+                              {alert.delivered_channels.length > 0 && (
+                                <span className="text-xs text-gray-500">
+                                  via {alert.delivered_channels.join(', ')}
+                                </span>
+                              )}
+                              {alert.resolved_at && (
+                                <span className="text-xs text-green-600">
+                                  Resolved {new Date(alert.resolved_at).toLocaleString()}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            {!alert.resolved_at && (
+                              <button
+                                onClick={() => handleResolveAlert(alert.id)}
+                                className="px-3 py-1 bg-green-100 text-green-700 rounded text-xs font-medium hover:bg-green-200"
+                              >
+                                Resolve
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {alerts.length === 0 && (
+                  <div className="text-center py-8">
+                    <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600">No alerts found</p>
                   </div>
                 )}
               </div>

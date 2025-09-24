@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   Search,
@@ -69,6 +69,9 @@ import {
 
 // Import new marketplace components
 import { CartProvider, useCart } from '../context/CartContext'
+// Flow14.1.1
+import { USE_MOCK_MARKETPLACE } from '../services/mock_toggle'
+import { listProducts } from '../services/marketplacePublicApi'
 import { CartDrawer } from '../components/marketplace/CartDrawer'
 import { ProductCard } from '../components/marketplace/ProductCard'
 import { CartIcon } from '../components/marketplace/CartIcon'
@@ -145,7 +148,7 @@ interface Product {
   price: number;
   currency: string;
   rating: number;
-  reviews: number;
+  reviewCount: number;
   seller: {
     name: string;
     isVerified: boolean;
@@ -253,7 +256,6 @@ const sampleProducts: Product[] = [
       isVerified: true,
       rating: 4.9,
       trustScore: 98,
-      verificationType: 'premium',
       location: 'Nairobi',
       country: 'Kenya',
       region: 'Central'
@@ -282,7 +284,6 @@ const sampleProducts: Product[] = [
       isVerified: true,
       rating: 4.6,
       trustScore: 95,
-      verificationType: 'basic',
       location: 'Kampala',
       country: 'Uganda',
       region: 'Central'
@@ -307,7 +308,6 @@ const sampleProducts: Product[] = [
       isVerified: false,
       rating: 4.2,
       trustScore: 75,
-      verificationType: 'basic',
       location: 'Mombasa',
       country: 'Kenya',
       region: 'Coast'
@@ -332,7 +332,6 @@ const sampleProducts: Product[] = [
       isVerified: true,
       rating: 4.9,
       trustScore: 92,
-      verificationType: 'enterprise',
       location: 'Dar es Salaam',
       country: 'Tanzania',
       region: 'Dar es Salaam'
@@ -357,7 +356,6 @@ const sampleProducts: Product[] = [
       isVerified: true,
       rating: 4.5,
       trustScore: 88,
-      verificationType: 'premium',
       location: 'Kigali',
       country: 'Rwanda',
       region: 'Kigali'
@@ -382,7 +380,6 @@ const sampleProducts: Product[] = [
       isVerified: true,
       rating: 4.7,
       trustScore: 96,
-      verificationType: 'enterprise',
       location: 'Nakuru',
       country: 'Kenya',
       region: 'Rift Valley'
@@ -420,6 +417,35 @@ function MarketplaceContent() {
     hasQrCode: false,
     sortBy: 'newest'
   })
+  const [apiItems, setApiItems] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+
+  // Flow14.1.1: Fetch live products when mock is disabled
+  useEffect(() => {
+    let mounted = true
+    async function run() {
+      if (USE_MOCK_MARKETPLACE) {
+        setApiItems([])
+        return
+      }
+      setLoading(true)
+      try {
+        const resp = await listProducts({
+          page: 1,
+          limit: 12,
+          q: searchQuery || undefined,
+          category: selectedCategory !== 'all' ? selectedCategory : undefined,
+        })
+        if (mounted) setApiItems(resp.items)
+      } catch (_) {
+        if (mounted) setApiItems([])
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+    run()
+    return () => { mounted = false }
+  }, [searchQuery, selectedCategory])
 
   return (
     <div className="bg-[#15192C] min-h-screen pt-16">
@@ -681,14 +707,43 @@ function MarketplaceContent() {
 
         {/* Product Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {sampleProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onContact={(product) => console.log('Contact:', product.name)}
-              onVerify={(product) => console.log('Verify:', product.name)}
-            />
-          ))}
+          {loading && !USE_MOCK_MARKETPLACE ? (
+            <div className="text-white/80">Loading products...</div>
+          ) : (
+            (USE_MOCK_MARKETPLACE ? sampleProducts : apiItems.map((p: any) => ({
+              id: p.id,
+              name: p.title,
+              category: (p.category || 'tools'),
+              price: (p.price_cents || 0) / 100,
+              currency: p.currency || 'USD',
+              rating: p.seller_rating || 4.5,
+              reviewCount: p.seller_reviews_count || 0,
+              seller: {
+                id: p.seller_id,
+                name: p.seller_name || 'Seller',
+                verified: !!p.seller_verified,
+                rating: p.seller_rating || 4.5,
+                reviews_count: p.seller_reviews_count || 0,
+                location: { city: '—', country: '—' }
+              },
+              image: (p.images && p.images[0]) || '/images/products/placeholder.jpg',
+              badges: [],
+              stock: p.stock || 0,
+              location: '',
+              sustainablyGrown: false,
+              hasQrVerification: false,
+              paymentMethods: { mobileMoney: true, stripe: true, bank: true, wallet: true },
+              delivery: { lastMile: false, pickupPoints: [], estimatedDays: 3 },
+              qualityAssurance: { labTested: false, certifications: [], standardsCompliance: [] },
+            }))).map((product: any) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onContact={(product) => console.log('Contact:', product.name)}
+                onVerify={(product) => console.log('Verify:', product.name)}
+              />
+            ))
+          )}
         </div>
 
         {/* Advanced AI Insights Panel */}

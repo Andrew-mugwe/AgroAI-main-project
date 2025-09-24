@@ -1,0 +1,56 @@
+name: Flow14.1.1 Marketplace Upgrade Verify
+
+on:
+  pull_request:
+    branches: [ main, dev ]
+  workflow_dispatch: {}
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: agroai
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+
+      - name: Backend tests
+        run: |
+          cd backend
+          go mod tidy
+          go test ./... -count=1
+
+      - name: Run migrations and seeds
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/agroai?sslmode=disable
+        run: |
+          psql "$DATABASE_URL" -f db/migrations/0018_marketplace_public_endpoints.up.sql
+          psql "$DATABASE_URL" -f db/seeds/seed_marketplace_public.sql
+
+      - name: Frontend build
+        run: |
+          cd client
+          npm ci
+          npm run build
+
+
